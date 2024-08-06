@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import PersonalForm from "./personalForm";
+import useLocalStorage from "../hooks/useLocalStorage";
+import { fileToBase64 } from "../helper/filetobase64";
 
 const parentalSchema = z.object({
   parents: z.array(
@@ -16,16 +18,20 @@ const parentalSchema = z.object({
   ),
 });
 
-const Form = () => {
+const Form = ({ editdata }) => {
+  console.log(editdata);
   const [current, setCurrent] = useState(1);
   const [formData, setFormData] = useState({
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    age: "",
-    parents: [{ Name: "", number: "" }],
+    firstName: editdata ? editdata.firstName : "",
+    middleName: editdata ? editdata.middleName : "",
+    lastName: editdata ? editdata.lastName : "",
+    age: editdata ? editdata.age : "",
+    file: editdata ? editdata.file : "",
+    parents: editdata ? editdata.parents : [{ Name: "", number: "" }],
   });
 
+  const [data, setData] = useLocalStorage("formData", formData);
+  console.log(data);
   const {
     register,
     handleSubmit,
@@ -41,19 +47,23 @@ const Form = () => {
     name: "parents",
   });
 
-  const prev = () => {
-    setCurrent((current) => current - 1);
-  };
+  const prev = () => setCurrent((current) => current - 1);
 
-  const onSubmit = (data) => {
-    const combinedData = {
-      ...formData,
-      ...data,
-    };
+  const onSubmit = async (data) => {
+    console.log("this is form", formData);
+    const combinedData = { ...formData, ...data };
+
+    if (formData.file instanceof File) {
+      const fileBase64 = await fileToBase64(formData.file);
+      combinedData.file = fileBase64;
+    }
+
+    setData(combinedData);
     console.log(combinedData);
   };
 
   const updateFormData = (data) => {
+    console.log("this is data", data);
     setFormData((prevData) => ({ ...prevData, ...data }));
   };
 

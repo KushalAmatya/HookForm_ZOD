@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -11,6 +11,7 @@ const personalSchema = z.object({
     .string()
     .min(1, "Age is required")
     .regex(/\d+/, "Age should be a number"),
+  file: z.instanceof(File),
 });
 
 const PersonalForm = ({
@@ -22,14 +23,17 @@ const PersonalForm = ({
   const {
     register,
     handleSubmit,
+    watch,
     trigger,
     formState: { errors },
+    control,
   } = useForm({
     resolver: zodResolver(personalSchema),
     defaultValues: defaultValues,
   });
 
   const onSubmit = async (data) => {
+    console.log(data);
     const isValid = await trigger();
     if (!isValid) return;
 
@@ -42,6 +46,17 @@ const PersonalForm = ({
       <legend className="text-white text-center text-2xl font-bold">
         Personal Information
       </legend>
+      {watch("file") && (
+        <img
+          src={
+            typeof watch("file") === "string"
+              ? watch("file")
+              : URL.createObjectURL(watch("file"))
+          }
+          alt="profile"
+          className="w-20 h-20 rounded-full mx-auto mt-2"
+        />
+      )}
       <label htmlFor="" className="text-gray-300 mt-2 mb-2">
         First Name:
       </label>
@@ -80,7 +95,25 @@ const PersonalForm = ({
         className="w-full px-3 py-2 border border-gray-300 rounded-md mt-2 mb-2"
         placeholder="Enter Your Age"
       />
-      <span className="text-red-500">{errors.age && errors.age.message}</span>
+      <p className="text-red-500">{errors.age && errors.age.message}</p>
+      <label htmlFor="files" className="text-gray-300 mt-2 mb-2">
+        Profile Picture:
+      </label>
+      <Controller
+        control={control}
+        name="file"
+        render={({ field: { name, onChange, ref } }) => (
+          <input
+            type="file"
+            ref={ref}
+            name={name}
+            onChange={(e) => onChange(e.target.files[0])}
+            className="hidden"
+            id="files"
+          />
+        )}
+      />
+      <span className="text-red-500">{errors.file && errors.file.message}</span>
       <button
         type="submit"
         onClick={handleSubmit(onSubmit)}
