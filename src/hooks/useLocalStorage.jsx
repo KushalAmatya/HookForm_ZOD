@@ -1,25 +1,49 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-const useLocalStorage = (key, defaultValue) => {
-  const [value, setValue] = useState(() => {
-    let currentValue;
+const useLocalStorage = () => {
+  const [data, setData] = useState(
+    JSON.parse(localStorage.getItem("formData")) || []
+  );
 
-    try {
-      currentValue = JSON.parse(
-        localStorage.getItem(key) || String(defaultValue)
-      );
-    } catch (error) {
-      currentValue = defaultValue;
-    }
+  const addItem = (toAdd) => {
+    const newData = [...data, toAdd];
+    localStorage.setItem("formData", JSON.stringify(newData));
+    setData(newData);
+  };
 
-    return currentValue;
-  });
+  const remove = (index) => {
+    const newData = data.filter((_, i) => i !== index);
+    localStorage.setItem("formData", JSON.stringify(newData));
+    setData(newData);
+  };
 
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [value, key]);
-
-  return [value, setValue];
+  const update = (toUpdate, index) => {
+    const newData = data.map((item, i) => (i === index ? toUpdate : item));
+    localStorage.setItem("formData", JSON.stringify(newData));
+    setData(newData);
+  };
+  return { data, addItem, remove, update };
 };
-
 export default useLocalStorage;
+
+// export const useLocalStorage = (key, defaultValue) => {
+//   const [value, setValue] = useState(() => {
+//     let currentValue;
+
+//     try {
+//       currentValue = JSON.parse(
+//         localStorage.getItem(key) || String(defaultValue)
+//       );
+//     } catch (error) {
+//       currentValue = defaultValue;
+//     }
+
+//     return currentValue;
+//   });
+
+//   useEffect(() => {
+//     localStorage.setItem(key, JSON.stringify(value));
+//   }, [value, key]);
+
+//   return [value, setValue];
+// };

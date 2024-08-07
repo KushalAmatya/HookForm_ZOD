@@ -3,6 +3,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import PersonalForm from "./personalForm";
+
 import useLocalStorage from "../hooks/useLocalStorage";
 import { fileToBase64 } from "../helper/filetobase64";
 
@@ -19,6 +20,8 @@ const parentalSchema = z.object({
 });
 
 const Form = ({ editdata }) => {
+  const { addItem } = useLocalStorage();
+
   console.log(editdata);
   const [current, setCurrent] = useState(1);
   const [formData, setFormData] = useState({
@@ -30,8 +33,7 @@ const Form = ({ editdata }) => {
     parents: editdata ? editdata.parents : [{ Name: "", number: "" }],
   });
 
-  const [data, setData] = useLocalStorage("formData", formData);
-  console.log(data);
+  // console.log(data);
   const {
     register,
     handleSubmit,
@@ -57,8 +59,8 @@ const Form = ({ editdata }) => {
       const fileBase64 = await fileToBase64(formData.file);
       combinedData.file = fileBase64;
     }
+    addItem(combinedData);
 
-    setData(combinedData);
     console.log(combinedData);
     setCurrent((current) => current + 1);
   };
